@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     firstName: {
@@ -26,5 +27,13 @@ const userSchema = new mongoose.Schema({
     age: Number
 });
 
+// make sure to use function keyword instead of arrow function to access 'this' keyword
+// these should be added before creating the model
+userSchema.methods.getJwtToken = async function() {
+    const token = await jwt.sign({ _id: this._id }, 'testinggg', { expiresIn: '1h' });
+    return token;
+}
+
 const User = mongoose.model('User', userSchema);
+
 module.exports = User;

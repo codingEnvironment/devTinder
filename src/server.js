@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const connectDB = require('./config/database');
 const User = require('./models/userModel');
+const userAuth = require('./middleware/userAuth');
 const port = 3000;
 
 // mongodb+srv://gmaheshreddy538_db_user:qmZEqZGge2EiZTQp@cluster0.9copg9c.mongodb.net/
@@ -73,7 +74,8 @@ app.post('/login', async (req, res) => {
         if (!isMatch) {
             return res.status(401).send('Invalid email or password');
         }
-        const token = jwt.sign({ _id: user._id }, 'testinggg');
+        // create a token using jwt and send it to client in cookie
+        const token = await user.getJwtToken();
         res.cookie('token', token, { httpOnly: true });
         res.send('Login successful');
     } catch (err) {
@@ -81,29 +83,14 @@ app.post('/login', async (req, res) => {
         res.status(500).send(err.message || 'Internal Server Error');
     }
 });
-app.get('/profile', async (req, res) => {
+app.get('/profile', userAuth, async (req, res) => {
     /**
      * get the token from cookie
      * if token exists then verify the token using jwt
      * if token is valid then retrieve id from it
      * fetch the user details from database using id and send it to client
      */
-    const token = req.cookies.token;
-    if (token) {
-        try {
-            const decoded = jwt.verify(token, 'testinggg');
-            const { _id } = decoded;
-            const user = await User.findById(_id);
-            if(!user) {
-                return res.status(404).send('User not found');
-            }
-            res.send(user);
-        } catch (err) {
-            res.status(401).send('Invalid token');
-        }
-    } else {
-        res.status(401).send('No token provided');
-    }
+    res.send(req.user);
 });
 
 connectDB().then(() => {
