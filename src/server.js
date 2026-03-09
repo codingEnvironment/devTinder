@@ -3,6 +3,8 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const connectDB = require('./config/database');
 const User = require('./models/userModel');
 const port = 3000;
@@ -39,11 +41,12 @@ app.post('/signup', async (req, res) => {
     try {
         console.log(req.body);
         const { firstName, lastName, email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
         const data = {
             firstName,
             lastName,
             email,
-            password
+            password: hashedPassword
         }
         await new User(data).save();
         res.send('User signed up successfully');
@@ -66,6 +69,10 @@ app.post('/login', async (req, res) => {
             return res.status(401).send('Invalid email or password');
         }
         // validated the password using bcrypt
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(401).send('Invalid email or password');
+        }
         const token = jwt.sign({ _id: user._id }, 'testinggg');
         res.cookie('token', token, { httpOnly: true });
         res.send('Login successful');
@@ -74,7 +81,7 @@ app.post('/login', async (req, res) => {
         res.status(500).send(err.message || 'Internal Server Error');
     }
 });
-app.get('/profile', (req, res) => {
+app.get('/profile', async (req, res) => {
     /**
      * get the token from cookie
      * if token exists then verify the token using jwt
@@ -85,7 +92,12 @@ app.get('/profile', (req, res) => {
     if (token) {
         try {
             const decoded = jwt.verify(token, 'testinggg');
-            res.send(`Welcome to your profile, ${decoded.email}`);
+            const { _id } = decoded;
+            const user = await User.findById(_id);
+            if(!user) {
+                return res.status(404).send('User not found');
+            }
+            res.send(user);
         } catch (err) {
             res.status(401).send('Invalid token');
         }
