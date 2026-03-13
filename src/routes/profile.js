@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 const userAuth = require('../middleware/userAuth');
-const User = require('../models/userModel');
 const { validateEditProfileRequest } = require("../utils/validation")
 
 router.get('/view', userAuth, async (req, res) => {
@@ -39,5 +40,27 @@ router.patch('/edit', userAuth, async (req, res) => {
     }
 
 });
+
+router.patch("/forgotpassword", userAuth, async (req, res) => {
+    /**
+     * from the FE we will get the email and new password in the req.body
+     * hash the new password using bcrypt
+     * update the new password in db
+     */
+    try {
+        const { email, newPassword } = req.body;
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        const loggedInUser = req.user;
+        if (loggedInUser.email !== email) {
+            throw new Error('You are not authorized to change password for this email');
+        }
+        loggedInUser.password = hashedPassword;
+        await loggedInUser.save();
+        res.send('Password updated successfully');
+    } catch (err) {
+        console.log('Error during forgot password:', err);
+        res.status(500).send("ERROR on forgot pwd: " + err.message || 'Internal Server Error');
+    }
+})
 
 module.exports = router;
