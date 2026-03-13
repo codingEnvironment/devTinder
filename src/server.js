@@ -5,6 +5,8 @@ app.use(cookieParser());
 const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
+const dotenv = require('dotenv');
+dotenv.config();
 const port = 3000;
 
 // mongodb+srv://gmaheshreddy538_db_user:qmZEqZGge2EiZTQp@cluster0.9copg9c.mongodb.net/
