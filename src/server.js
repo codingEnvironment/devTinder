@@ -14,6 +14,8 @@ app.use(express.json()); // Middleware to parse JSON bodies
 /**
  * if we enable the below code then for any route it always executes the below code and sends the response as "Welcome to DevTinder API" and 
  * it will not execute the actual route handler code for that route. So we should not enable the below code. We can use it for testing purpose only.
+ * but for the express router all apis works because we are not directly passing the route handler function to the app.use() method, instead we are passing 
+ * the router object which internally maintains the list of routes and their handlers and it executes the correct handler based on the route and method of the request.
  */
 // app.use('/', (req, res) => {
 //     console.log('Received request for root endpoint');
