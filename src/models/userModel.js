@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other'],
+        required: true
+    },
     company: String,
     profilePicture: {
         type: String,
@@ -25,7 +30,7 @@ const userSchema = new mongoose.Schema({
     interests: [String],
     location: String,
     age: Number
-});
+}, { timestamps: true });
 
 // make sure to use function keyword instead of arrow function to access 'this' keyword
 // these should be added before creating the model

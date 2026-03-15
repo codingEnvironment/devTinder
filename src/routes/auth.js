@@ -6,13 +6,14 @@ const User = require('../models/userModel');
 
 router.post('/signup', async (req, res) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
+        const { firstName, lastName, email, password, gender } = req.body;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         const data = {
             firstName,
             lastName,
             email,
-            password: hashedPassword
+            password: hashedPassword,
+            gender
         }
         await new User(data).save();
         res.send('User signed up successfully');
