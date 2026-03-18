@@ -10,8 +10,6 @@ const dotenv = require('dotenv');
 dotenv.config();
 const port = 3000;
 
-// mongodb+srv://gmaheshreddy538_db_user:qmZEqZGge2EiZTQp@cluster0.9copg9c.mongodb.net/
-
 app.use(express.json()); // Middleware to parse JSON bodies
 
 /**
