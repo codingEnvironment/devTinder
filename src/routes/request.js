@@ -52,4 +52,38 @@ router.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
     }
 });
 
+// Review connection request route skeleton
+router.post("/request/review/:status/:requestId", userAuth, async (req, res) => {
+    try {
+        const requestId = req.params.requestId;
+        const status = req.params.status;
+        const loggedInUser = req.user;
+
+        const allowedStatuses = ['accepted', 'rejected'];
+        if (!allowedStatuses.includes(status)) {
+            throw new Error("Invalid status value");
+        }
+
+        const existingRequest = await ConnectionRequestModel.findOne({
+            _id: requestId,
+            toUserId: loggedInUser._id,
+            status: 'interested'
+        });
+
+        if (!existingRequest) {
+            throw new Error("Connection request not found");
+        }
+
+        existingRequest.status = status;
+        const updatedRequest = await existingRequest.save();
+
+        res.status(200).json({
+            message: `${loggedInUser.firstName} has ${status} the request`,
+            data: updatedRequest
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to review connection, Err: " + error.message });
+    }
+});
+
 module.exports = router;
