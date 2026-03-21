@@ -6,6 +6,7 @@ const connectDB = require('./config/database');
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const requestRoutes = require('./routes/request'); // Importing the request routes
+const userRoutes = require('./routes/user'); // Importing the user routes
 const dotenv = require('dotenv');
 dotenv.config();
 const port = 3000;
@@ -26,6 +27,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/', requestRoutes);
+app.use('/', userRoutes);
 
 connectDB().then(() => {
     app.listen(port, () => {
