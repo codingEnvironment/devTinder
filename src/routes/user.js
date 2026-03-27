@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const userAuth = require("../middleware/userAuth");
 const ConnectionRequestModel = require("../models/connectionRequest");
+const User = require("../models/userModel");
 const userData = "firstName lastName";
 
 // Get all received connection requests
@@ -57,4 +58,44 @@ router.get("/user/connections", userAuth, async (req, res) => {
     }
 });
 
+// Get feed
+router.get("/user/feed", userAuth, async (req, res) => {
+    try {
+        const loggedInUser = req.user;
+
+        const connections = await ConnectionRequestModel.find({
+            $or: [
+                { fromUserId: loggedInUser._id },
+                { toUserId: loggedInUser._id }
+            ]
+        }).select("fromUserId toUserId");
+
+        const usersAlreadyInNetwork = new Set();
+        connections.forEach(connection => {
+            usersAlreadyInNetwork.add(connection.fromUserId.toString());
+            usersAlreadyInNetwork.add(connection.toUserId.toString());
+        });
+
+        console.log(usersAlreadyInNetwork)
+
+        const users = await User.find({
+            $and: [
+                { _id: { $nin: Array.from(usersAlreadyInNetwork) } },
+                { _id: { $ne: loggedInUser._id } } // this condition not needed if the loggedin user has already connections but
+                // incase if the user not have any connections, 
+                // then we will be getting all users in the feed, which is not expected. We should exclude the loggedin 
+                // user from the feed as well.
+            ]
+        }).select("firstName lastName email");
+
+        res.status(200).json({
+            message: "Data fetched successfully",
+            data: users
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch feed, Err: " + error.message });
+    }
+});
+
 module.exports = router;
+ 
