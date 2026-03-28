@@ -62,6 +62,9 @@ router.get("/user/connections", userAuth, async (req, res) => {
 router.get("/user/feed", userAuth, async (req, res) => {
     try {
         const loggedInUser = req.user;
+        const { page, limit } = req.query;
+        const pageNumber = parseInt(page) || 1;
+        const limitNumber = parseInt(limit) || 10;
 
         const connections = await ConnectionRequestModel.find({
             $or: [
@@ -78,6 +81,14 @@ router.get("/user/feed", userAuth, async (req, res) => {
 
         console.log(usersAlreadyInNetwork)
 
+        /**
+         * skip & limit logic
+         * page: 1, limit: 10 => skip: 0, limit: 10
+         * page: 2, limit: 10 => skip: 10, limit: 10
+         * page: 3, limit: 10 => skip: 20, limit: 10
+         * skip = (page - 1) * limit
+         */
+
         const users = await User.find({
             $and: [
                 { _id: { $nin: Array.from(usersAlreadyInNetwork) } },
@@ -86,7 +97,10 @@ router.get("/user/feed", userAuth, async (req, res) => {
                 // then we will be getting all users in the feed, which is not expected. We should exclude the loggedin 
                 // user from the feed as well.
             ]
-        }).select("firstName lastName email");
+        }).select("firstName lastName email")
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber);
+
 
         res.status(200).json({
             message: "Data fetched successfully",
@@ -98,4 +112,3 @@ router.get("/user/feed", userAuth, async (req, res) => {
 });
 
 module.exports = router;
- 
