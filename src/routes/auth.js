@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
         // create a token using jwt and send it to client in cookie
         const token = await user.getJwtToken();
         res.cookie('token', token, { httpOnly: true });
-        res.send('Login successful');
+        res.send(user);
     } catch (err) {
         console.log('Error during login:', err);
         res.status(500).send(err.message || 'Internal Server Error');
